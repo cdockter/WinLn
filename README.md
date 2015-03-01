@@ -12,11 +12,17 @@ The goal here is to provide a ln compatible implementation which actually create
 * accepts all ln options a silently ignores them
 * works on Windows Vista and later
 
+
+#### Testing
+* Windows 8.1 with slipt token
+* ...
+
 ### INSTALLATION
 There are two options:
 1. Download the latest version of [ln.exe](https://github.com/cdockter/WinLn/tree/master/bins) and put it on your path.
 2. Pull the latest source and build.  Put the resulting ln.exe on your path.
 Happy ln-ing! :D
+
 
 ### SOURCE
 (https://github.com/cdockter/WinLn
