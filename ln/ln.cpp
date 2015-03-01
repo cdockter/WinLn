@@ -154,6 +154,7 @@ void PrintHelp() {
 	wprintf(L"  ln [OPTION]... OriginalSourceFile... DIRECTORY\n\n");
 	wprintf(L"Options\n");
 	wprintf(L"   -f, --force\n       Remove existing destination files\n");
+	wprintf(L"   -s, --symbolic\n       Make symbolic links instead of hard links\n");
 	wprintf(L"   --help\n       Display this help and exit\n");
 }
 
