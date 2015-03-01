@@ -12,7 +12,6 @@ The goal here is to provide a ln compatible implementation which actually create
 * accepts all ln options a silently ignores them
 * works on Windows Vista and later
 
-
 #### Testing
 * Windows 8.1 with slipt token
 * ...
@@ -25,7 +24,7 @@ Happy ln-ing! :D
 
 
 ### SOURCE
-(https://github.com/cdockter/WinLn
+https://github.com/cdockter/WinLn
 
 ### CONTRIBUTING
 This was really just to solve my problem and I was suprised that it didn't already exist (as far as I can tell).  To that end, Please feel free to improve! :)
