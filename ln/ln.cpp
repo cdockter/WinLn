@@ -13,6 +13,7 @@ enum FileStateExpectation
 struct MakeLinkArgs
 {
 	bool Overwrite = false;
+	bool SymLink = false;
 	LPCWCHAR LinkName;
 	LPCWCHAR LinkTarget;
 };
@@ -76,7 +77,7 @@ DWORD PrintResultOfDeleteAttempt(bool result)
 	Sleep(10);
 	if (!result)
 	{
-		return PrintErrorMessage(L"Could not remove old link", GetLastError());
+		return PrintErrorMessage(L"Could not remove old link ", GetLastError());
 	}
 	return 0;
 }
@@ -122,27 +123,31 @@ DWORD HandleLinkExistance(FileInfo info, MakeLinkArgs mklinkArgs)
 {
 	if (info.Exists && mklinkArgs.Overwrite)
 	{
-		wprintf(L"Link already exists but overwrite set");
-		if (info.IsSymLink)
+		wprintf(L"Link already exists but overwrite set ");
+		if (!info.IsSymLink && mklinkArgs.SymLink)
 		{
-			switch (info.Type)
-			{
-			case LnFileType::File:
-				return PrintResultOfDeleteAttempt(DeleteFile(info.Path));
-				break;
-			case LnFileType::Directory:
-				return PrintResultOfDeleteAttempt(RemoveDirectory(info.Path));
-				break;
-			default:
-				wprintf(L" unknown file type to remove: aborting\n");
-				return -4;
-			}
-		}
-		else
-		{
-			wprintf(L" but the link was not a link\n");
+			wprintf(L" but the existing link was not a real file.\n   please remove it and run the command again\n");
 			return -3;
 		}
+		if (!mklinkArgs.SymLink)
+		{
+			return PrintResultOfDeleteAttempt(DeleteFile(info.Path));
+		}
+		switch (info.Type)
+		{
+		case LnFileType::File:
+			wprintf(L"attempting to remove directory\n");
+			return PrintResultOfDeleteAttempt(DeleteFile(info.Path));
+			break;
+		case LnFileType::Directory:
+			wprintf(L"attempting to remove directory\n");
+			return PrintResultOfDeleteAttempt(RemoveDirectory(info.Path));
+			break;
+		default:
+			wprintf(L" unknown file type to remove: aborting\n");
+			return -4;
+		}
+
 	}
 	return 0;
 }
@@ -178,12 +183,20 @@ MakeLinkArgs ParseArgs(int argCount, LPCWCHAR arguments[])
 				mklinkArgs.Overwrite = true;
 				continue;
 			}
+			if (0 == lstrcmp(currentArg, L"--symbolic"))
+			{
+				mklinkArgs.SymLink = true;
+				continue;
+			}
 			for (int i = 0; i < currentArgLength; i++)
 			{
 				switch (currentArg[i])
 				{
 				case 'f':
 					mklinkArgs.Overwrite = true;
+					break;
+				case 's':
+					mklinkArgs.SymLink = true;
 					break;
 				}
 			}
@@ -217,7 +230,25 @@ DWORD GetLinkPath(MakeLinkArgs mklinkArgs, LPTSTR linkPath, DWORD maxPathLength)
 		NULL);
 }
 
-DWORD CreateSymLink(MakeLinkArgs mklinkArgs, FileInfo targetState)
+DWORD CreateSymLink(MakeLinkArgs mklinkArgs, LPCWSTR linkPath, LnFileType targetType)
+{
+	if (!CreateSymbolicLink(mklinkArgs.LinkName, linkPath, (targetType == LnFileType::Directory) ? SYMBOLIC_LINK_FLAG_DIRECTORY : 0))
+	{
+		return PrintErrorMessage(L"Failed to create link: ", GetLastError());
+	}
+	return 0;
+}
+
+DWORD CreateHardlink(MakeLinkArgs mklinkArgs, LPCWSTR linkPath)
+{
+	if (!CreateHardLink(mklinkArgs.LinkName, linkPath, NULL))
+	{
+		return PrintErrorMessage(L"Failed to create link: ", GetLastError());
+	}
+	return 0;
+}
+
+DWORD CreateLink(MakeLinkArgs mklinkArgs, FileInfo targetState)
 {
 	WCHAR linkPath[MAX_PATH] = L"\0";
 	DWORD result = GetLinkPath(mklinkArgs, linkPath, MAX_PATH);
@@ -225,12 +256,14 @@ DWORD CreateSymLink(MakeLinkArgs mklinkArgs, FileInfo targetState)
 	{
 		return PrintErrorMessage(L"Could not resolve the path between the link and target", GetLastError());
 	}
-
-	if (!CreateSymbolicLink(mklinkArgs.LinkName, linkPath, (targetState.Type == LnFileType::Directory) ? SYMBOLIC_LINK_FLAG_DIRECTORY : 0))
+	if (mklinkArgs.SymLink)
 	{
-		return PrintErrorMessage(L"Failed to create synlink: ", GetLastError());
+		return CreateSymLink(mklinkArgs, linkPath, targetState.Type);
 	}
-	return 0;
+	else
+	{
+		return CreateHardlink(mklinkArgs, linkPath);
+	}
 }
 
 
@@ -262,6 +295,6 @@ int _tmain(int argc, LPCWCHAR argv[])
 	Sleep(100);
 
 
-	result = CreateSymLink(mklinkArgs, targetState);
+	result = CreateLink(mklinkArgs, targetState);
 	return result;
 }
