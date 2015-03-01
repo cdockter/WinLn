@@ -6,7 +6,7 @@ I recently was trying to run some scripts that rely on [ln](http://ss64.com/bash
 
 The goal is to provide a [ln](http://ss64.com/bash/ln.html) compatible implementation which actually creates symlinks on Windows machines.  The underlying functionality is similar to the Windows [mklink](http://ss64.com/nt/mklink.html) command.
 
-** [ln.exe](https://github.com/cdockter/WinLn/raw/master/bins/ln.exe) can't create hard-links and will _always_ create symlinks! **
+**[ln.exe](https://github.com/cdockter/WinLn/raw/master/bins/ln.exe) can't create hard-links and will _always_ create symlinks!**
 
 #### Features
 * synlinks for files and directories
@@ -22,6 +22,7 @@ The goal is to provide a [ln](http://ss64.com/bash/ln.html) compatible implement
 
 ### INSTALLATION
 There are two options:
+
 1. Download the latest version of [ln.exe](https://github.com/cdockter/WinLn/raw/master/bins/ln.exe) from the [bins](https://github.com/cdockter/WinLn/tree/master/bins) folder and put it on your path.
 2. Pull the latest source and build.  Put the resulting ln.exe on your path.
 Happy ln-ing! :D
